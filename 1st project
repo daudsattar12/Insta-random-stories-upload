@@ -1,0 +1,52 @@
+import os
+import random
+import time
+import shutil
+from instabot import Bot
+
+photos_folder = 'photos'
+oldphotos_folder = 'oldphotos'
+
+bot = Bot()
+bot.login(username="your_username", password="your_password")
+
+def get_photos_from_folder(folder, num=4):
+
+    photos = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(('jpg', 'jpeg', 'png'))]
+    random.shuffle(photos)
+    return photos[:num]
+
+def move_photos_to_old(photos):
+
+    for photo in photos:
+        if os.path.exists(photo):
+            shutil.move(photo, oldphotos_folder)
+            print(f"Moved {photo} to {oldphotos_folder}")
+
+def post_story(photos, multiple=False):
+
+    if multiple:
+
+        bot.upload_story_photo(photos=photos)
+        print(f"Posted 4 photos to the story.")
+    else:
+
+        bot.upload_story_photo(photos[0])
+        print(f"Posted 1 photo to the story.")
+
+def check_and_post_stories():
+
+    while True:
+
+        if len(os.listdir(photos_folder)) < 4:
+            print("Not enough photos, waiting for new photos...")
+            time.sleep(10)
+            continue
+
+        photos = get_photos_from_folder(photos_folder)
+
+        post_multiple = random.choice([True, False])
+
+        post_story(photos, multiple=post_multiple)
+
+        move_photos_to_old(photos)
